@@ -79,6 +79,8 @@ def get_covering_tiles(bounds, maxZoom=0, minZoom=16):
     return tiles
 
 
+#this should be used to genrate a tileCache using i.e. tilemill.
+#must somehow find out how to tell tileMill what to do
 if __name__ == "__main__":
     bounds = [10.1, 63.3, 10.6, 63.5]
     tiles = get_covering_tiles(bounds)
