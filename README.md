@@ -27,4 +27,6 @@ Usage
 
 ###Using the tiles
 * get your tiles readable through some servide
+    * ```pip install tilestache```
+    * ```tilestache-server.py -c ts.cfg``` should work if you edit ts.cfg
 * look at index.html for how to create a map
