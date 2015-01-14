@@ -31,8 +31,7 @@
 
         //the L.BoundedTileLayer behaves as an L.TileLayer, except for a more
         //"sophisticated" loading of tiles related to the bounds.
-        L.boundedTileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+        L.boundedTileLayer('http://127.0.0.1:8080/test/{z}/{x}/{y}.png', {
             bounds: bounds
         }).addTo(map);
 
