@@ -6,80 +6,114 @@ from globalmaptiles import GlobalMercator
 from subprocess import call
 
 
-def multiplyPoint(x, y, factor):
-    return x * factor, y * factor
+mercator = GlobalMercator()
 
 
-def center(north, west, south, east):
-    lon = (north + south) / 2
-    lat = (east + west) / 2
-    return lon, lat
+# helper classes
+class Point(object):
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
 
 
-def get_distances(bounds, center_lng, center_lat):
-    west = bounds[0]
-    south = bounds[1]
-    east = bounds[2]
-    north = bounds[3]
+class LatLon(object):
+    def __init__(self, lat, lon):
+        self.lat = lat
+        self.lon = lon
 
+
+class Bounds(object):
+    def __init__(self, minx, miny, maxx, maxy):
+        self.minx = minx
+        self.miny = miny
+        self.maxx = maxx
+        self.maxy = maxy
+
+    def intersects(self, other):
+        x_intersects = (self.maxx >= other.minx) and (self.minx <= other.maxx)
+        y_intersects = (self.maxy >= other.miny) and (self.miny <= other.maxy)
+        return x_intersects and y_intersects
+
+    def center(self):
+        lat = (self.maxy + self.miny) / 2
+        lon = (self.maxx + self.minx) / 2
+        return LatLon(lat, lon)
+
+    def width(self):
+        return abs(self.maxx - self.minx)
+
+    def height(self):
+        return abs(self.maxy - self.miny)
+
+
+# globalmaptiles wrappers
+def meters_to_tile(point, zoom):
+    x, y = mercator.MetersToTile(point.x, point.y, zoom)
+    return Point(x, y)
+
+
+def latlon_to_meters(latlon):
+    x, y = mercator.LatLonToMeters(latlon.lat, latlon.lon)
+    return Point(x, y)
+
+
+def to_google_tile(tile_point, zoom):
+    x, y = mercator.GoogleTile(tile_point.x, tile_point.y, zoom)
+    return Point(x, y)
+
+
+def get_tile_latlon_bounds(tpoint, zoom):
+    (minLat, minLon, maxLat, maxLon) = mercator.TileLatLonBounds(
+        tpoint.x,
+        tpoint.y,
+        zoom
+    )
+    return Bounds(minLon, minLat, maxLon, maxLat)
+
+
+# internal calculations
+def get_distances(bounds, center):
     lng_dist = min(
-        abs(center_lng - east),
-        abs(center_lng - west)
+        abs(center.lon - bounds.maxx),
+        abs(center.lon - bounds.minx)
     )
     lat_dist = min(
-        abs(center_lat - south),
-        abs(center_lat - north)
+        abs(center.lat - bounds.miny),
+        abs(center.lat - bounds.maxy)
     )
 
     return lng_dist, lat_dist
 
 
-def should_load(zoom, x, y, tile_bounds, tile_size, bounds):
-    nwPoint_x, nwPoint_y = multiplyPoint(x, y, tile_size)
-    (se_lat, nw_lon, nw_lat, se_lon) = tile_bounds
-
-    center_lng, center_lat = center(nw_lon, nw_lat, se_lon, se_lat)
-    lng_dist, lat_dist = get_distances(bounds, center_lng, center_lat)
-
-    tileWidth = abs(nw_lon - se_lon)
-    tileHeight = abs(nw_lat - se_lat)
-    return lng_dist < tileWidth and lat_dist < tileHeight
+def is_within(tile_bounds, bounds):
+    center = tile_bounds.center()
+    lng_dist, lat_dist = get_distances(bounds, center)
+    return lng_dist < tile_bounds.width() and lat_dist < tile_bounds.height()
 
 
-def intersects(b1, b2):
-    b3 = (b2[1], b2[0], b2[3], b2[2])
-
-    min_x = b3[1]
-    min_y = b3[0]
-    max_x = b3[3]
-    max_y = b3[2]
-
-    min2_x = b1[1]
-    min2_y = b1[0]
-    max2_x = b1[3]
-    max2_y = b1[2]
-
-    xIntersects = (max2_x >= min_x) and (min2_x <= max_x)
-    yIntersects = (max2_y >= min_y) and (min2_y <= max_y)
-    return xIntersects and yIntersects
+def should_include(tpoint, zoom, area_bounds):
+    tile_bounds = get_tile_latlon_bounds(tpoint, zoom)
+    intersects = tile_bounds.intersects(area_bounds)
+    within_distance = is_within(tile_bounds, area_bounds)
+    return intersects or within_distance
 
 
 def get_covering_tiles(bounds, min_zoom=0, max_zoom=16):
-    mercator = GlobalMercator()
-    mx, my = mercator.LatLonToMeters(bounds[1], bounds[0])
-    mxmax, mymax = mercator.LatLonToMeters(bounds[3], bounds[2])
-    tileSize = 256
+
+    mmin = latlon_to_meters(LatLon(bounds[1], bounds[0]))
+    mmax = latlon_to_meters(LatLon(bounds[3], bounds[2]))
+
+    area_bounds = Bounds(bounds[0], bounds[1], bounds[2], bounds[3])
     tiles = []
     for zoom in range(min_zoom, max_zoom + 1):
-        tminx, tminy = mercator.MetersToTile(mx, my, zoom)
-        tmaxx, tmaxy = mercator.MetersToTile(mxmax, mymax, zoom)
-        for tx in range(tminx - 1, tmaxx + 2):
-            for ty in range(tminy - 1, tmaxy + 2):
-                x, y = mercator.GoogleTile(tx, ty, zoom)
-                tile_bounds = mercator.TileLatLonBounds(tx, ty, zoom)
-                inside = intersects(tile_bounds, bounds)
-                if inside or should_load(zoom, x, y, tile_bounds, tileSize, bounds):
-                    tiles.append({'x': x, 'y': y, 'z': zoom})
+        tmin = meters_to_tile(mmin, zoom)
+        tmax = meters_to_tile(mmax, zoom)
+        for tx in range(tmin.x - 1, tmax.x + 2):
+            for ty in range(tmin.y - 1, tmax.y + 2):
+                tpoint = Point(tx, ty)
+                if should_include(tpoint, zoom, area_bounds):
+                    gpoint = to_google_tile(tpoint, zoom)
+                    tiles.append({'x': gpoint.x, 'y': gpoint.y, 'z': zoom})
     return tiles
 
 
@@ -106,13 +140,13 @@ def generate_mbtiles(config, export_dir):
     min_zoom = config.get('minZoom', None)
     max_zoom = config.get('maxZoom', None)
     project = config.get('tmProject', None)
-
-    export_dir = export_dir + project + '/'
+    name = config.get('name', project)
+    export_dir = export_dir + name + '/'
     ensure_dir(export_dir)
 
     tiles = get_covering_tiles(bounds, min_zoom, max_zoom)
 
-    filelist_name = export_dir + project + '_tiles.json'
+    filelist_name = export_dir + name + '_tiles.json'
     create_tilemill_file(filelist_name, tiles)
 
     call([
@@ -120,7 +154,7 @@ def generate_mbtiles(config, export_dir):
         '/usr/share/tilemill/index.js',
         'export',
         project,
-        export_dir + project + '.mbtiles',
+        export_dir + name + '.mbtiles',
         '--scheme=file',
         '--list=' + filelist_name,
         '--verbose=off'
