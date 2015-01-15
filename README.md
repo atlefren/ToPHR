@@ -18,11 +18,11 @@ Usage
 * /usr/share/tilemill/index.js should be available
 
 * Edit the the config.json file provided 
-** bounds: EPSG:4326 coords: [southwest_lng, southwest_lat, northeast_lng, northeast_lat])
-** tmProject: name of the TileMill project you want to generate tiles for
+   * bounds: EPSG:4326 coords: [southwest_lng, southwest_lat, northeast_lng, northeast_lat])
+   * tmProject: name of the TileMill project you want to generate tiles for
 
 * run python tiles.py
-** use -c to specify different config file
+   * use -c to specify different config file
 
 
 ###Using the tiles
