@@ -3,8 +3,8 @@ import os
 import sys
 import getopt
 from globalmaptiles import GlobalMercator
-from subprocess import call
-
+#from subprocess import call
+from subprocess import Popen, PIPE
 
 mercator = GlobalMercator()
 
@@ -144,7 +144,7 @@ def generate(export_dir, bounds, min_zoom, max_zoom, project, name):
     filelist_name = export_dir + name + '_tiles.json'
     create_tilemill_file(filelist_name, tiles)
 
-    call([
+    p = Popen([
         'node',
         '/usr/share/tilemill/index.js',
         'export',
@@ -153,7 +153,10 @@ def generate(export_dir, bounds, min_zoom, max_zoom, project, name):
         '--scheme=file',
         '--list=' + filelist_name,
         '--verbose=off'
-    ])
+    ], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+
+    for line in iter(p.stdout.readline, ''):
+        print line
 
 
 def generate_mbtiles(config, export_dir):
