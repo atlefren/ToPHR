@@ -36,9 +36,11 @@
         <div class="col-xs-2">
             <input class="form-control" value="0" id="minZoom">
             <input class="form-control" value="16" id="maxZoom">
-            <button id="generate" class="btn">Generate tiles for current bounds</button>
+            <button id="calculate" class="btn">Calculate tiles for current bounds</button>
         </div>
-        <div class="col-xs-10" id="res">
+        <div class="col-xs-10">
+            <span id="res"></span>
+            <button id="generate" class="btn hidden">Ok, Generate them!</button>
         </div>
     </div>
 </div>
@@ -54,33 +56,12 @@
     (function () {
         'use strict';
 
-        //this defines the area we are interested in
-        var polygon = L.polygon([
-            [63.3, 10.1],
-            [63.3, 10.6],
-            [63.5, 10.6],
-            [63.5, 10.1],
-            [63.3, 10.1]
-            ]);
-        var bounds = polygon.getBounds();
-
-        //set the bounds on the map to prevent panning outside
-        //var map = L.map('map', {maxBounds: bounds}).setView([63.4, 10.3], 0);
         var map = L.map('map').setView([63.4, 10.3], 12);
+
         L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        /*
-        //the L.BoundedTileLayer behaves as an L.TileLayer, except for a more
-        //"sophisticated" loading of tiles related to the bounds.
-        L.boundedTileLayer('http://127.0.0.1:8080/test/{z}/{x}/{y}.png', {
-            bounds: bounds
-        }).addTo(map);
-
-        //show the bounds
-        map.addLayer(polygon);
-        */
 
         function calculateTiles() {
             if (map.getZoom() < 12 ) {
@@ -95,9 +76,35 @@
             var tiles = TOPH.generateTiles(bounds,minZoom, maxZoom);
 
             $("#res").html("Creating tiles for current bounds from zoom " +  minZoom + " to " + maxZoom + " generates " + tiles.length + " tiles");
+
+            $('#generate').removeClass("hidden");
+        }
+        
+        function tilesGenerated() {
+            $("#res").html("Tiles generated");
+            $('#generate').addClass("hidden");
         }
 
-        $('#generate').click(calculateTiles);
+        function generateTiles() {
+            var data = {
+                bounds: map.getBounds().toBBoxString(),
+                minZoom: parseInt($("#minZoom").val(), 10),
+                maxZoom: parseInt($("#maxZoom").val(), 10)
+            }
+
+            $.ajax({
+                type: "POST",
+                url: "/generate",
+                data: JSON.stringify(data),
+                success: tilesGenerated,
+                contentType: "application/json",
+                dataType: "json"
+            });
+        }
+
+        $('#calculate').click(calculateTiles);
+
+        $('#generate').click(generateTiles);
 
     }());
 </script>

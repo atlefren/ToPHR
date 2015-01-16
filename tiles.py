@@ -133,14 +133,9 @@ def ensure_dir(directory):
         os.makedirs(directory)
 
 
-def generate_mbtiles(config, export_dir):
+def generate(export_dir, bounds, min_zoom, max_zoom, project, name):
     export_dir = export_dir + '/'
     ensure_dir(export_dir)
-    bounds = config.get('bounds', None)
-    min_zoom = config.get('minZoom', None)
-    max_zoom = config.get('maxZoom', None)
-    project = config.get('tmProject', None)
-    name = config.get('name', project)
     export_dir = export_dir + name + '/'
     ensure_dir(export_dir)
 
@@ -159,6 +154,15 @@ def generate_mbtiles(config, export_dir):
         '--list=' + filelist_name,
         '--verbose=off'
     ])
+
+
+def generate_mbtiles(config, export_dir):
+    bounds = config.get('bounds', None)
+    min_zoom = config.get('minZoom', None)
+    max_zoom = config.get('maxZoom', None)
+    project = config.get('tmProject', None)
+    name = config.get('name', project)
+    generate(export_dir, bounds, min_zoom, max_zoom, project, name)
 
 
 def parse_params(argv):
