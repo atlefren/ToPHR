@@ -2,15 +2,30 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <link type="text/css" rel="stylesheet" href="{{url_for('static', filename='js/lib/bootstrap/dist/css/bootstrap.css')}}">
+    <link type="text/css" rel="stylesheet" href="{{url_for('static', filename='js/lib/leaflet/dist/leaflet.css')}}">
+    <style type="text/css">
+        html, body { 
+            height:100%; 
+            width:100%;
+            padding: 0;
+            margin: 0;
+        }
 
-    <link type="text/css" rel="stylesheet" href="bower_components/leaflet/dist/leaflet.css">
+        #map {
+            width:100%; 
+            height:100%;
+        }
+    </style>
 </head>
 <body>
 
-<div id="map" style="width:800px; height: 800px;"></div>
+<div id="map"></div>
 
-<script type="text/javascript" src="bower_components/leaflet/dist/leaflet.js"></script>
-<script type="text/javascript" src="BoundedTileLayer.js"></script>
+<script type="text/javascript" src="{{url_for('static', filename='js/lib/leaflet/dist/leaflet.js')}}"></script>
+<script type="text/javascript" src="{{url_for('static', filename='js/src/BoundedTileLayer.js')}}"></script>
+
+<!--<script type="text/javascript" src="test.js"></script>-->
 
 <script type="text/javascript">
     (function () {
@@ -25,10 +40,10 @@
             [63.3, 10.1]
             ]);
         var bounds = polygon.getBounds();
-        console.log(bounds.toBBoxString())
+
         //set the bounds on the map to prevent panning outside
         var map = L.map('map', {maxBounds: bounds}).setView([63.4, 10.3], 0);
-
+        
         //the L.BoundedTileLayer behaves as an L.TileLayer, except for a more
         //"sophisticated" loading of tiles related to the bounds.
         L.boundedTileLayer('http://127.0.0.1:8080/test/{z}/{x}/{y}.png', {
@@ -37,6 +52,7 @@
 
         //show the bounds
         map.addLayer(polygon);
+
 
 
     }());

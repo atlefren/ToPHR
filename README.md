@@ -8,6 +8,7 @@ An attempt to use small tilesets to focus on a limited area.
 For now I have a custom Leaflet-layer that determines what tiles to load, 
 and a pyhton-script to compute and generate what tiles to generate in order to focus on a given area. 
 
+In addition I've ported the tile calculation code to JavaScript, see static/js/src/BoundsGenerator.js
 
 Usage
 -----
@@ -29,4 +30,4 @@ Usage
 * get your tiles readable through some servide
     * ```pip install tilestache```
     * ```tilestache-server.py -c ts.cfg``` should work if you edit ts.cfg
-* look at index.html for how to create a map
+* look at templates/example.html for how to create a map

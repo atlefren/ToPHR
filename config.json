@@ -1,6 +1,7 @@
 {
     "bounds": [10.1, 63.3, 10.6, 63.5],
     "minZoom": 0,
-    "maxZoom": 16,
-    "tmProject": "world"
+    "maxZoom": 3,
+    "tmProject": "world",
+    "name": "world-trh"
 }
