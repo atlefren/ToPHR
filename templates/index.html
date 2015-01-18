@@ -6,27 +6,32 @@
     <link type="text/css" rel="stylesheet" href="{{url_for('static', filename='js/lib/leaflet/dist/leaflet.css')}}">
 
     <style type="text/css">
-        html, body { 
-            height:100%; 
-            width:100%;
-            padding: 0;
-            margin: 0;
-        }
+     html, body {
+         height:100%;
+         width:100%;
+         padding: 0;
+         margin: 0;
+     }
 
-        #map {
-            width:100%; 
-            height:100%;
-        }
+     #map {
+         width:100%;
+         height:100%;
+     }
 
-        #under {
-            padding: 5px;
-            position: absolute;
-            height: 140px;
-            width: 100%;
-            bottom: 0;
-            background: rgba(100, 100, 100, 0.4);
-            z-index: 1200;
-        }
+     #under {
+         padding: 5px;
+         position: absolute;
+         
+         width: 100%;
+         bottom: 0;
+         background: rgba(100, 100, 100, 0.4);
+         z-index: 1200;
+     }
+
+     #under .row {
+         margin-left: 0;
+         margin-right: 0;
+     }
     </style>
 </head>
 <body>
@@ -81,11 +86,25 @@
          
          render: function() {
              return (
-                 <form onSubmit={this.handleSubmit}>
-                   <div className="col-xs-2">
-                     <input className="form-control" defaultValue="0" ref="minZoom" />
-                     <input className="form-control" defaultValue="16" ref="maxZoom" />
-                     <input type="submit" className="btn" value="Calculate tiles for current bounds" />
+                 <form className="form-horizontal" onSubmit={this.handleSubmit}>
+                   <div className="form-group">
+                     <label className="col-sm-4 control-label">MinZoom</label>
+                     <div className="col-sm-4">
+                       <input type="int" className="form-control" defaultValue="0" ref="minZoom" />
+                     </div>
+                   </div>
+                   <div className="form-group">
+                     <label className="col-sm-4 control-label">MaxZoom</label>
+                     <div className="col-sm-4">
+                       <input type="int" className="form-control" defaultValue="16" ref="maxZoom" />
+                     </div>
+                   </div>
+                   <div className="form-group">
+                     <div className="col-sm-10">
+                       <button type="submit" className="btn btn-default">
+                         Calculate tiles for current bounds
+                       </button>
+                     </div>
                    </div>
                  </form>
              );
@@ -154,8 +173,10 @@
              }
              return (
                  <div className="row">
-                   <DataForm beforeCompute={this.beforeCompute}/>
-                   <div className="col-xs-10">
+                   <div className="col-xs-4">
+                     <DataForm beforeCompute={this.beforeCompute}/>
+                   </div>
+                   <div className="col-xs-8">
                      <div>{this.state.message}</div>
                      <button
                        className={generateClass}
