@@ -31,3 +31,15 @@ Usage
     * ```pip install tilestache```
     * ```tilestache-server.py -c ts.cfg``` should work if you edit ts.cfg
 * look at templates/example.html for how to create a map
+
+
+###React stuff
+* npm install react-tools
+* jsx --watch static/js/react static/js/src/
+
+
+###Running webapp
+* virtualenv venv
+* source venv/bin/activate
+* pip install -r requirements.txt
+* python app.py
