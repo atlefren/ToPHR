@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <link type="text/css" rel="stylesheet" href="{{url_for('static', filename='js/lib/bootstrap/dist/css/bootstrap.css')}}">
     <link type="text/css" rel="stylesheet" href="{{url_for('static', filename='js/lib/leaflet/dist/leaflet.css')}}">
+
     <style type="text/css">
         html, body { 
             height:100%; 
@@ -31,26 +32,15 @@
 <body>
 
 <div id="map"></div>
-<div id="under">
-    <div class="row">
-        <div class="col-xs-2">
-            <input class="form-control" value="0" id="minZoom">
-            <input class="form-control" value="16" id="maxZoom">
-            <button id="calculate" class="btn">Calculate tiles for current bounds</button>
-        </div>
-        <div class="col-xs-10">
-            <span id="res"></span>
-            <button id="generate" class="btn hidden">Ok, Generate them!</button>
-        </div>
-    </div>
-</div>
+<div id="under"></div>
 
-<script type="text/javascript" src="{{url_for('static', filename='js/lib/underscore-min.js')}}"></script>
+<script type="text/javascript" src="{{url_for('static', filename='js/lib/react/react.js')}}"></script>
+<script type="text/javascript" src="{{url_for('static', filename='js/lib/react/JSXTransformer.js')}}"></script>
+<script type="text/javascript" src="{{url_for('static', filename='js/lib/underscore/underscore-min.js')}}"></script>
 <script type="text/javascript" src="{{url_for('static', filename='js/lib/jquery/dist/jquery.js')}}"></script>
 <script type="text/javascript" src="{{url_for('static', filename='js/lib/leaflet/dist/leaflet.js')}}"></script>
 <script type="text/javascript" src="{{url_for('static', filename='js/src/BoundedTileLayer.js')}}"></script>
 <script type="text/javascript" src="{{url_for('static', filename='js/src/BoundsGenerator.js')}}"></script>
-<!--<script type="text/javascript" src="test.js"></script>-->
 
 <script type="text/javascript">
     (function () {
@@ -62,51 +52,128 @@
             attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-
-        function calculateTiles() {
-            if (map.getZoom() < 12 ) {
-                alert("zoom further in!");
-                $("#res").html("");
-                return;
-            } 
-            $("#res").html("Computing number of tiles");
-            var bounds = map.getBounds().toBBoxString();
-            var minZoom = parseInt($("#minZoom").val(), 10);
-            var maxZoom = parseInt($("#maxZoom").val(), 10);
-            var tiles = TOPH.generateTiles(bounds,minZoom, maxZoom);
-
-            $("#res").html("Creating tiles for current bounds from zoom " +  minZoom + " to " + maxZoom + " generates " + tiles.length + " tiles");
-
-            $('#generate').removeClass("hidden");
-        }
-        
-        function tilesGenerated() {
-            $("#res").html("Tiles generated");
-            $('#generate').addClass("hidden");
-        }
-
-        function generateTiles() {
-            var data = {
-                bounds: map.getBounds().toBBoxString(),
-                minZoom: parseInt($("#minZoom").val(), 10),
-                maxZoom: parseInt($("#maxZoom").val(), 10)
-            }
-
-            $.ajax({
-                type: "POST",
-                url: "/generate",
-                data: JSON.stringify(data),
-                success: tilesGenerated,
-                contentType: "application/json",
-                dataType: "json"
-            });
-        }
-
-        $('#calculate').click(calculateTiles);
-
-        $('#generate').click(generateTiles);
-
+        window.map = map;
     }());
+</script>
+
+<script type="text/jsx">
+
+ function setupDownload(map) {
+
+ 
+     function computeTiles(data, callback) {
+         var tiles = TOPH.generateTiles(data.bounds, data.minZoom, data.maxZoom);
+         callback(tiles);
+     }
+ 
+     var DataForm = React.createClass({
+
+         handleSubmit: function(e) {
+             e.preventDefault();
+             var minZoom = parseInt(this.refs.minZoom.getDOMNode().value, 10);
+             var maxZoom = parseInt(this.refs.maxZoom.getDOMNode().value, 10);
+             this.props.beforeCompute({
+                 minZoom: minZoom,
+                 maxZoom: maxZoom
+             });
+             return;
+         },
+         
+         render: function() {
+             return (
+                 <form onSubmit={this.handleSubmit}>
+                   <div className="col-xs-2">
+                     <input className="form-control" defaultValue="0" ref="minZoom" />
+                     <input className="form-control" defaultValue="16" ref="maxZoom" />
+                     <input type="submit" className="btn" value="Calculate tiles for current bounds" />
+                   </div>
+                 </form>
+             );
+         }
+     });
+     
+     var TileDownloader = React.createClass({
+         
+         getInitialState: function() {
+             return {
+                 message: '',
+                 showGenerate: false
+             }
+         },
+
+         beforeCompute: function (data) {
+             var bounds = this.props.map.getBounds().toBBoxString();
+             data.bounds = bounds;
+             this.setState({
+                 message: 'Computing number of tiles'
+             });
+             this.data = data;
+             computeTiles(data, this.tilesComputed);
+         },
+
+         tilesComputed: function (tiles) {
+             var minZoom = this.data.minZoom;
+             var maxZoom = this.data.maxZoom;
+             var bounds = this.data.bounds;
+             
+             this.setState({
+                 message: "Creating tiles for current bounds from zoom " +  minZoom + " to " + maxZoom + " generates " + tiles.length + " tiles",
+                 showGenerate: true
+             });
+         },
+         
+         generateTiles: function () {
+             if (!this.state.showGenerate) {
+                 return;
+             }
+             this.setState({
+                 message: 'Waiting for TileMill to generate tiles',
+                 showGenerate: false
+             });
+
+             $.ajax({
+                 type: 'POST',
+                 url: '/generate',
+                 data: JSON.stringify(this.data),
+                 success: this.tilesGenerated,
+                 contentType: 'application/json',
+                 dataType: 'json'
+             });
+         },
+
+         tilesGenerated: function () {
+             this.setState({
+                 message: 'Tiles Generated!'
+             });
+         },
+         
+         render: function() {
+             var generateClass = 'btn hidden';
+             if (this.state.showGenerate) {
+                 generateClass = 'btn';
+             }
+             return (
+                 <div className="row">
+                   <DataForm beforeCompute={this.beforeCompute}/>
+                   <div className="col-xs-10">
+                     <div>{this.state.message}</div>
+                     <button
+                       className={generateClass}
+                       onClick={this.generateTiles}
+                       >Ok, Generate them!</button>
+                   </div>
+                 </div>
+             );
+         }
+     });
+
+     React.render(
+         <TileDownloader map={map}/>,
+         document.getElementById('under')
+     );
+ }
+
+ setupDownload(window.map);
 </script>
 
 </body>
