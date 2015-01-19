@@ -5,6 +5,10 @@ from subprocess import Popen, PIPE
 from compute_tiles import get_covering_tiles
 
 
+class TileMillException(Exception):
+    pass
+
+
 def create_tilemill_file(filename, tiles):
     with open(filename, 'w') as f:
         for tile in tiles:
@@ -14,6 +18,14 @@ def create_tilemill_file(filename, tiles):
 def ensure_dir(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
+
+
+def find_filename(lines):
+    str = 'found previous export with same name, so renamed to: '
+    for line in lines:
+        if str in line:
+            return line.replace(str, '').strip()
+    return None
 
 
 def generate(export_dir, bounds, min_zoom, max_zoom, project, name):
@@ -27,21 +39,32 @@ def generate(export_dir, bounds, min_zoom, max_zoom, project, name):
     filelist_name = export_dir + name + '_tiles.json'
     create_tilemill_file(filelist_name, tiles)
 
+    out_file = export_dir + name + '.mbtiles'
     p = Popen([
         'node',
         '/usr/share/tilemill/index.js',
         'export',
         project,
-        export_dir + name + '.mbtiles',
+        out_file,
         '--scheme=file',
         '--list=' + filelist_name,
         '--verbose=off'
     ], stdin=PIPE, stdout=PIPE, stderr=PIPE)
 
+    lines = []
     for line in iter(p.stdout.readline, ''):
-        print line
+        lines.append(line)
+
     p.wait()
-    return p.returncode == 0
+
+    new_filename = find_filename(lines)
+    if new_filename:
+        return export_dir + new_filename
+    return out_file
+
+    if p.returncode == 0:
+        return out_file
+    raise TileMillException
 
 
 def generate_mbtiles(config, export_dir):
