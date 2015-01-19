@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify
-from tiles import generate as generate_tiles
+from scripts import generate as generate_tiles
 
 app = Flask(__name__)
 
