@@ -51,3 +51,11 @@ def generate_mbtiles(config, export_dir):
     project = config.get('tmProject', None)
     name = config.get('name', project)
     generate(export_dir, bounds, min_zoom, max_zoom, project, name)
+
+
+def get_tilemill_projects():
+    home = os.path.expanduser("~")
+    projects_path = home + '/Documents/MapBox/project/'
+    projects = [name for name in os.listdir(projects_path)
+                if os.path.isdir(os.path.join(projects_path, name))]
+    return sorted(projects)

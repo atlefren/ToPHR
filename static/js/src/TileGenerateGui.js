@@ -1,5 +1,5 @@
 var TOPH = this.TOPH || {};
-TOPH.setupDownloadGUI = function (map) {
+TOPH.setupDownloadGUI = function (map, projects) {
     'use strict';
 
      function computeTiles(data, callback) {
@@ -59,12 +59,46 @@ TOPH.setupDownloadGUI = function (map) {
         }
     });
 
+    var ProjectChooser = React.createClass({displayName: "ProjectChooser",
+
+        getInitialState: function() {
+             return {
+                 selectedProject: '--'
+             }
+         },
+
+        onChange: function(e) {
+            var project = e.target.value;
+            this.setState({selectedProject: project});
+            this.props.projectChange(project);
+        },
+
+        render: function() {
+            var projects = _.clone(this.props.projects);
+            projects.unshift('--');
+            var projectNodes = projects.map(function (project) {
+                return (
+                    React.createElement("option", {value: project}, project)
+                );
+            }, this);
+            return (
+                React.createElement("div", null, 
+                React.createElement("h2", null, "Project:"), 
+                React.createElement("select", {onChange: this.onChange, value: this.state.selectedProject}, 
+                    projectNodes
+                )
+                )
+            );
+        }
+    });
+
      var TileDownloader = React.createClass({displayName: "TileDownloader",
 
          getInitialState: function() {
              return {
                  messageData: {message: ''},
-                 showGenerate: false
+                 showGenerate: false,
+                 project: null
              }
          },
 
@@ -78,6 +112,7 @@ TOPH.setupDownloadGUI = function (map) {
                     }
              });
              this.data = data;
+             this.data.project = this.state.project;
              computeTiles(data, this.tilesComputed);
          },
 
@@ -90,7 +125,6 @@ TOPH.setupDownloadGUI = function (map) {
                  messageData: {
                     message: "Creating tiles for current bounds from zoom " +  minZoom + " to " + maxZoom + " generates " + tiles.length + " tiles",
                     alertClass: 'info'
-
                  },
                  showGenerate: true
              });
@@ -107,7 +141,6 @@ TOPH.setupDownloadGUI = function (map) {
                 },
                 showGenerate: false
              });
-
              $.ajax({
                  type: 'POST',
                  url: '/generate',
@@ -137,17 +170,46 @@ TOPH.setupDownloadGUI = function (map) {
              });
          },
 
+         projectChange: function (project) {
+            this.setState({
+                project: project,
+                showGenerate: false,
+                messageData: {
+                    message: ''
+                }
+            });
+         },
+
          render: function() {
              var generateClass = 'btn hidden';
              if (this.state.showGenerate) {
                  generateClass = 'btn';
              }
+             if (!this.state.project || this.state.project === '--') {
+                return (
+                    React.createElement("div", {className: "row"}, 
+                        React.createElement("div", {className: "col-xs-2"}, 
+                            React.createElement(ProjectChooser, {
+                                projects: this.props.projects, 
+                                projectChange: this.projectChange}
+                            )
+                        )
+                    )
+                );
+             }
+
              return (
                  React.createElement("div", {className: "row"}, 
                    React.createElement("div", {className: "col-xs-2"}, 
+                    React.createElement(ProjectChooser, {
+                        projects: this.props.projects, 
+                        projectChange: this.projectChange}
+                    )
+                   ), 
+                   React.createElement("div", {className: "col-xs-2"}, 
                      React.createElement(DataForm, {beforeCompute: this.beforeCompute})
                    ), 
-                   React.createElement("div", {className: "col-xs-10"}, 
+                   React.createElement("div", {className: "col-xs-8"}, 
                      React.createElement(Notifier, {data: this.state.messageData}), 
                      React.createElement("button", {
                        className: generateClass, 
@@ -160,7 +222,7 @@ TOPH.setupDownloadGUI = function (map) {
      });
 
      React.render(
-         React.createElement(TileDownloader, {map: map}),
+         React.createElement(TileDownloader, {map: map, projects: projects}),
          document.getElementById('under')
      );
  };
