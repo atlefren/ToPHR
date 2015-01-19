@@ -47,11 +47,23 @@ TOPH.setupDownloadGUI = function (map) {
          }
      });
 
+    var Notifier = React.createClass({
+        render: function () {
+            if (this.props.data.message === '') {
+                return (<div></div>);
+            }
+            var alertClass = 'alert alert-' + this.props.data.alertClass;
+            return (
+                <div className={alertClass}>{this.props.data.message}</div>
+            );
+        }
+    });
+
      var TileDownloader = React.createClass({
 
          getInitialState: function() {
              return {
-                 message: '',
+                 messageData: {message: ''},
                  showGenerate: false
              }
          },
@@ -60,7 +72,10 @@ TOPH.setupDownloadGUI = function (map) {
              var bounds = this.props.map.getBounds().toBBoxString();
              data.bounds = bounds;
              this.setState({
-                 message: 'Computing number of tiles'
+                    messageData: {
+                        message: 'Computing number of tiles',
+                        alertClass: 'info'
+                    }
              });
              this.data = data;
              computeTiles(data, this.tilesComputed);
@@ -72,7 +87,11 @@ TOPH.setupDownloadGUI = function (map) {
              var bounds = this.data.bounds;
 
              this.setState({
-                 message: "Creating tiles for current bounds from zoom " +  minZoom + " to " + maxZoom + " generates " + tiles.length + " tiles",
+                 messageData: {
+                    message: "Creating tiles for current bounds from zoom " +  minZoom + " to " + maxZoom + " generates " + tiles.length + " tiles",
+                    alertClass: 'info'
+
+                 },
                  showGenerate: true
              });
          },
@@ -82,8 +101,11 @@ TOPH.setupDownloadGUI = function (map) {
                  return;
              }
              this.setState({
-                 message: 'Waiting for TileMill to generate tiles',
-                 showGenerate: false
+                messageData: {
+                    message: 'Waiting for TileMill to generate tiles',
+                    alertClass: 'info'
+                },
+                showGenerate: false
              });
 
              $.ajax({
@@ -91,14 +113,27 @@ TOPH.setupDownloadGUI = function (map) {
                  url: '/generate',
                  data: JSON.stringify(this.data),
                  success: this.tilesGenerated,
+                 error: this.tileGenerateError,
                  contentType: 'application/json',
                  dataType: 'json'
              });
          },
 
          tilesGenerated: function () {
-             this.setState({
-                 message: 'Tiles Generated!'
+            this.setState({
+                messageData: {
+                    message: 'Tiles Generated!',
+                    alertClass: 'success'
+                }
+             });
+         },
+
+         tileGenerateError: function () {
+            this.setState({
+                messageData: {
+                    message: 'Error generating tiles!',
+                    alertClass: 'danger'
+                }
              });
          },
 
@@ -109,11 +144,11 @@ TOPH.setupDownloadGUI = function (map) {
              }
              return (
                  <div className="row">
-                   <div className="col-xs-4">
+                   <div className="col-xs-2">
                      <DataForm beforeCompute={this.beforeCompute}/>
                    </div>
-                   <div className="col-xs-8">
-                     <div>{this.state.message}</div>
+                   <div className="col-xs-10">
+                     <Notifier data={this.state.messageData} />
                      <button
                        className={generateClass}
                        onClick={this.generateTiles}

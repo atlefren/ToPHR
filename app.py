@@ -20,7 +20,7 @@ def generate():
     bounds = [float(a) for a in data.get('bounds').split(',')]
     min_zoom = data.get('minZoom')
     max_zoom = data.get('maxZoom')
-    generate_tiles(
+    was_generated = generate_tiles(
         'export',
         bounds,
         min_zoom,
@@ -28,8 +28,9 @@ def generate():
         'world',
         'world_from_web'
     )
-    return jsonify(message='ok')
-
+    if was_generated:
+        return jsonify(message='ok')
+    return jsonify(message='oops!'), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

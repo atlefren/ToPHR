@@ -157,6 +157,8 @@ def generate(export_dir, bounds, min_zoom, max_zoom, project, name):
 
     for line in iter(p.stdout.readline, ''):
         print line
+    p.wait()
+    return p.returncode == 0
 
 
 def generate_mbtiles(config, export_dir):
