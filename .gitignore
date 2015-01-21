@@ -3,3 +3,5 @@ static/js/lib/
 export/
 venv/
 static/js/src/templates/.module-cache/
+static/js/dist/
+node_modules

@@ -1,10 +1,18 @@
-var Downloader = React.createClass({
+/*global React: false */
 
-    template: TOPH.templates.downloaderTemplate,
+var TOPH = this.TOPH || {};
+(function (ns) {
+    'use strict';
+    ns.Downloader = React.createClass({
 
-    render: function () {
-        var hiddenClass = this.props.filename ?  '' : 'hidden';
-        var link = '/download/' + this.props.filename;
-        return this.template({hiddenClass: hiddenClass, link: link});
-    }
-});
+        template: ns.templates.downloaderTemplate,
+
+        render: function () {
+            var hiddenClass = this.props.filename ?  '' : 'hidden';
+            var link = '/download/' + this.props.filename;
+            return this.template({hiddenClass: hiddenClass, link: link});
+        }
+    });
+
+}(TOPH));
+
