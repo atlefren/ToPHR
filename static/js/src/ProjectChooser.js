@@ -1,4 +1,8 @@
-var ProjectChooser = React.createClass({displayName: "ProjectChooser",
+var ProjectChooser = React.createClass({
+
+    template: TOPH.templates.projectChooserTemplate,
+
+    projectNodeTemplate: TOPH.templates.projectNodeTemplate,
 
     getInitialState: function () {
         return {
@@ -16,17 +20,8 @@ var ProjectChooser = React.createClass({displayName: "ProjectChooser",
         var projects = _.clone(this.props.projects);
         projects.unshift('--');
         var projectNodes = projects.map(function (project) {
-            return (
-                React.createElement("option", {value: project}, project)
-            );
+            return this.projectNodeTemplate({project: project});
         }, this);
-        return (
-            React.createElement("div", null, 
-            React.createElement("h2", null, "Project:"), 
-            React.createElement("select", {onChange: this.onChange, value: this.state.selectedProject}, 
-                projectNodes
-            )
-            )
-        );
+        return this.template({projectNodes: projectNodes});
     }
 });

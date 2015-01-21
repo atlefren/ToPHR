@@ -1,6 +1,6 @@
-/*global React: false */
-
-var dataFormTemplate = function () {
+var TOPH = this.TOPH || {};
+TOPH.templates = TOPH.templates || {};
+TOPH.templates.dataFormTemplate = function () {
     return (
         <form className="form-horizontal" onSubmit={this.handleSubmit}>
             <div className="form-group">
@@ -25,21 +25,3 @@ var dataFormTemplate = function () {
         </form>
     );
 };
-
-var DataForm = React.createClass({
-
-    handleSubmit: function (e) {
-        e.preventDefault();
-        var minZoom = parseInt(this.refs.minZoom.getDOMNode().value, 10);
-        var maxZoom = parseInt(this.refs.maxZoom.getDOMNode().value, 10);
-        this.props.beforeCompute({
-            minZoom: minZoom,
-            maxZoom: maxZoom
-        });
-        return;
-    },
-
-    render: function () {
-        return dataFormTemplate.bind(this)();
-     }
- });

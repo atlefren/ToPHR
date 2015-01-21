@@ -1,4 +1,10 @@
- var TileDownloader = React.createClass({displayName: "TileDownloader",
+var TileDownloader = React.createClass({
+
+    zoomInTemplate: TOPH.templates.zoomInTemplate,
+
+    noProjectTemplate: TOPH.templates.noProjectTemplate,
+
+    template: TOPH.templates.tileDownloaderTemplate,
 
     componentDidMount: function () {
         this.props.map.on('zoomend', this.zoomChange, this);
@@ -70,7 +76,6 @@
     },
 
     tilesGenerated: function (data) {
-        console.log(data);
         this.setState({
             messageData: {
                 message: 'Tiles Generated!',
@@ -101,53 +106,22 @@
 
     render: function () {
 
-
         if (!this.state.canGenerate) {
             var messageData = {
                 message: "Zoom further in to generate",
                 alertClass: "warning"
             };
-            return (React.createElement("div", {className: "row"}, React.createElement(Notifier, {data: messageData})));
+            return this.zoomInTemplate(messageData);
         }
 
         if (!this.state.project || this.state.project === '--') {
-            return (
-               React.createElement("div", {className: "row"},
-                   React.createElement("div", {className: "col-xs-2"},
-                       React.createElement(ProjectChooser, {
-                           projects: this.props.projects,
-                           projectChange: this.projectChange}
-                       )
-                   )
-               )
-           );
+            return this.noProjectTemplate();
         }
-
 
         var generateClass = 'btn hidden';
         if (this.state.showGenerate) {
             generateClass = 'btn';
         }
-        return (
-            React.createElement("div", {className: "row"},
-              React.createElement("div", {className: "col-xs-2"},
-               React.createElement(ProjectChooser, {
-                   projects: this.props.projects,
-                   projectChange: this.projectChange}
-               )
-              ),
-              React.createElement("div", {className: "col-xs-2"},
-                React.createElement(DataForm, {beforeCompute: this.beforeCompute})
-              ),
-              React.createElement("div", {className: "col-xs-8"},
-                React.createElement(Notifier, {data: this.state.messageData}),
-                React.createElement(Downloader, {filename: this.state.filename}),
-                React.createElement("button", {
-                  className: generateClass,
-                  onClick: this.generateTiles
-                  }, "Ok, Generate them!")
-              )
-            )
-        );
+        return this.template({generateClass: generateClass});
     }
  });
