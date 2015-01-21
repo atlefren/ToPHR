@@ -10,7 +10,8 @@
             messageData: {message: ''},
             showGenerate: false,
             project: null,
-            canGenerate: false
+            canGenerate: false,
+            filename: null
         };
     },
 
@@ -68,12 +69,14 @@
         });
     },
 
-    tilesGenerated: function () {
+    tilesGenerated: function (data) {
+        console.log(data);
         this.setState({
             messageData: {
                 message: 'Tiles Generated!',
                 alertClass: 'success'
-            }
+            },
+            filename: data.filename
         });
     },
 
@@ -97,10 +100,7 @@
     },
 
     render: function () {
-        var generateClass = 'btn hidden';
-        if (this.state.showGenerate) {
-            generateClass = 'btn';
-        }
+
 
         if (!this.state.canGenerate) {
             var messageData = {
@@ -112,10 +112,10 @@
 
         if (!this.state.project || this.state.project === '--') {
             return (
-               React.createElement("div", {className: "row"}, 
-                   React.createElement("div", {className: "col-xs-2"}, 
+               React.createElement("div", {className: "row"},
+                   React.createElement("div", {className: "col-xs-2"},
                        React.createElement(ProjectChooser, {
-                           projects: this.props.projects, 
+                           projects: this.props.projects,
                            projectChange: this.projectChange}
                        )
                    )
@@ -123,21 +123,27 @@
            );
         }
 
+
+        var generateClass = 'btn hidden';
+        if (this.state.showGenerate) {
+            generateClass = 'btn';
+        }
         return (
-            React.createElement("div", {className: "row"}, 
-              React.createElement("div", {className: "col-xs-2"}, 
+            React.createElement("div", {className: "row"},
+              React.createElement("div", {className: "col-xs-2"},
                React.createElement(ProjectChooser, {
-                   projects: this.props.projects, 
+                   projects: this.props.projects,
                    projectChange: this.projectChange}
                )
-              ), 
-              React.createElement("div", {className: "col-xs-2"}, 
+              ),
+              React.createElement("div", {className: "col-xs-2"},
                 React.createElement(DataForm, {beforeCompute: this.beforeCompute})
-              ), 
-              React.createElement("div", {className: "col-xs-8"}, 
-                React.createElement(Notifier, {data: this.state.messageData}), 
+              ),
+              React.createElement("div", {className: "col-xs-8"},
+                React.createElement(Notifier, {data: this.state.messageData}),
+                React.createElement(Downloader, {filename: this.state.filename}),
                 React.createElement("button", {
-                  className: generateClass, 
+                  className: generateClass,
                   onClick: this.generateTiles
                   }, "Ok, Generate them!")
               )

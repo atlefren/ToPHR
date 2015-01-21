@@ -10,7 +10,8 @@
             messageData: {message: ''},
             showGenerate: false,
             project: null,
-            canGenerate: false
+            canGenerate: false,
+            filename: "test"
         };
     },
 
@@ -97,10 +98,7 @@
     },
 
     render: function () {
-        var generateClass = 'btn hidden';
-        if (this.state.showGenerate) {
-            generateClass = 'btn';
-        }
+
 
         if (!this.state.canGenerate) {
             var messageData = {
@@ -123,6 +121,11 @@
            );
         }
 
+
+        var generateClass = 'btn hidden';
+        if (this.state.showGenerate) {
+            generateClass = 'btn';
+        }
         return (
             <div className="row">
               <div className="col-xs-2">
@@ -136,6 +139,7 @@
               </div>
               <div className="col-xs-8">
                 <Notifier data={this.state.messageData} />
+                <Downloader filename={this.state.filename}/>
                 <button
                   className={generateClass}
                   onClick={this.generateTiles}
