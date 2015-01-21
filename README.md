@@ -27,15 +27,16 @@ Usage
 
 
 ###Using the tiles
-* get your tiles readable through some servide
+* get your tiles readable through some service
     * ```pip install tilestache```
     * ```tilestache-server.py -c ts.cfg``` should work if you edit ts.cfg
 * look at templates/example.html for how to create a map
 
 
 ###React stuff
-* npm install -g react-tools
-* jsx --watch static/js/react static/js/src/
+* npm install -g grunt-cli
+* npm install
+* bower watch
 
 
 ###Running webapp
