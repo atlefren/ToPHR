@@ -57,14 +57,13 @@ def generate(export_dir, bounds, min_zoom, max_zoom, project, name):
 
     p.wait()
 
+    if p.returncode != 0:
+        raise TileMillException
+
     new_filename = find_filename(lines)
     if new_filename:
         return export_dir + new_filename
     return out_file
-    print p.returncode
-    if p.returncode == 0:
-        return out_file
-    raise TileMillException
 
 
 def generate_mbtiles(config, export_dir):
