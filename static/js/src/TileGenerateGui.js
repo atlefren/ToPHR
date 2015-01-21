@@ -94,12 +94,22 @@ TOPH.setupDownloadGUI = function (map, projects) {
 
      var TileDownloader = React.createClass({displayName: "TileDownloader",
 
+        componentDidMount: function() {
+            this.props.map.on('zoomend', this.zoomChange, this);
+            this.zoomChange();
+        },
+
          getInitialState: function() {
              return {
                  messageData: {message: ''},
                  showGenerate: false,
-                 project: null
+                 project: null,
+                 canGenerate: false
              }
+         },
+
+         zoomChange: function () {
+            this.setState({canGenerate: this.props.map.getZoom() > 11});
          },
 
          beforeCompute: function (data) {
@@ -185,6 +195,15 @@ TOPH.setupDownloadGUI = function (map, projects) {
              if (this.state.showGenerate) {
                  generateClass = 'btn';
              }
+
+             if (!this.state.canGenerate) {
+                var messageData = {
+                    message: "Zoom further in to generate",
+                    alertClass: "warning"
+                };
+                return (React.createElement("div", {className: "row"}, React.createElement(Notifier, {data: messageData})));
+             }
+
              if (!this.state.project || this.state.project === '--') {
                 return (
                     React.createElement("div", {className: "row"}, 
