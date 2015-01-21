@@ -2,4 +2,4 @@ static/js/lib/
 *.pyc
 export/
 venv/
-static/js/src/.module-cache/
+static/js/src/templates/.module-cache/
