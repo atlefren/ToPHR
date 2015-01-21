@@ -61,7 +61,7 @@ def generate(export_dir, bounds, min_zoom, max_zoom, project, name):
     if new_filename:
         return export_dir + new_filename
     return out_file
-
+    print p.returncode
     if p.returncode == 0:
         return out_file
     raise TileMillException
